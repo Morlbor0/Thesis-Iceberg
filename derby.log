@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Wed Feb 19 18:43:09 CET 2025:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0195-1f4e-7091-000002fa3d08 
+on database directory /Users/francescogalli/Desktop/pyspark_test/metastore_db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5ffd2b27 
+Loaded from file:/Users/francescogalli/Desktop/pyspark_test/.venv/lib/python3.9/site-packages/pyspark/jars/derby-10.14.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=22+36-2370
+user.dir=/Users/francescogalli/Desktop/pyspark_test
+os.name=Mac OS X
+os.arch=aarch64
+os.version=14.6.1
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''
