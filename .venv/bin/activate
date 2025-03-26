@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/francescogalli/Desktop/pyspark_test_BACKUP/.venv"
+VIRTUAL_ENV="/Users/francescogalli/Desktop/Iceberg_Thesis_Work/.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

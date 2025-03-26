@@ -29,7 +29,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/francescogalli/Desktop/pyspark_test_BACKUP/.venv"
+set -gx VIRTUAL_ENV "/Users/francescogalli/Desktop/Iceberg_Thesis_Work/.venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
