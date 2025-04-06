@@ -1,0 +1,167 @@
+{
+  "format-version" : 2,
+  "table-uuid" : "83c473c6-a31b-4fc0-b543-34e1389da023",
+  "location" : "spark-warehouse/iceberg/employee_db/employee",
+  "last-sequence-number" : 1,
+  "last-updated-ms" : 1743943946707,
+  "last-column-id" : 8,
+  "current-schema-id" : 1,
+  "schemas" : [ {
+    "type" : "struct",
+    "schema-id" : 0,
+    "fields" : [ {
+      "id" : 1,
+      "name" : "Index",
+      "required" : false,
+      "type" : "long"
+    }, {
+      "id" : 2,
+      "name" : "First Name",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 3,
+      "name" : "Last Name",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 4,
+      "name" : "Sex",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 5,
+      "name" : "Email",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 6,
+      "name" : "Phone",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 7,
+      "name" : "Date of birth",
+      "required" : false,
+      "type" : "date"
+    }, {
+      "id" : 8,
+      "name" : "Job Title",
+      "required" : false,
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "struct",
+    "schema-id" : 1,
+    "fields" : [ {
+      "id" : 1,
+      "name" : "Index",
+      "required" : false,
+      "type" : "long"
+    }, {
+      "id" : 2,
+      "name" : "First Name",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 3,
+      "name" : "Last Name",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 4,
+      "name" : "Sex",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 5,
+      "name" : "Email",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 6,
+      "name" : "Phone number",
+      "required" : false,
+      "type" : "string"
+    }, {
+      "id" : 7,
+      "name" : "Date of birth",
+      "required" : false,
+      "type" : "date"
+    }, {
+      "id" : 8,
+      "name" : "Job Title",
+      "required" : false,
+      "type" : "string"
+    } ]
+  } ],
+  "default-spec-id" : 0,
+  "partition-specs" : [ {
+    "spec-id" : 0,
+    "fields" : [ ]
+  } ],
+  "last-partition-id" : 999,
+  "default-sort-order-id" : 0,
+  "sort-orders" : [ {
+    "order-id" : 0,
+    "fields" : [ ]
+  } ],
+  "properties" : {
+    "owner" : "francescogalli",
+    "write.parquet.compression-codec" : "zstd"
+  },
+  "current-snapshot-id" : 1563362177603208424,
+  "refs" : {
+    "main" : {
+      "snapshot-id" : 1563362177603208424,
+      "type" : "branch"
+    }
+  },
+  "snapshots" : [ {
+    "sequence-number" : 1,
+    "snapshot-id" : 1563362177603208424,
+    "timestamp-ms" : 1742998551912,
+    "summary" : {
+      "operation" : "append",
+      "spark.app.id" : "local-1742998396751",
+      "added-data-files" : "12",
+      "added-records" : "10000",
+      "added-files-size" : "397996",
+      "changed-partition-count" : "1",
+      "total-records" : "10000",
+      "total-files-size" : "397996",
+      "total-data-files" : "12",
+      "total-delete-files" : "0",
+      "total-position-deletes" : "0",
+      "total-equality-deletes" : "0",
+      "engine-version" : "3.5.4",
+      "app-id" : "local-1742998396751",
+      "engine-name" : "spark",
+      "iceberg-version" : "Apache Iceberg 1.8.0 (commit c277c2014a1b37fe755cfe37f173b6465bb8cb73)"
+    },
+    "manifest-list" : "spark-warehouse/iceberg/employee_db/employee/metadata/snap-1563362177603208424-1-29028ec0-ef87-48e9-a1b5-661ac137017a.avro",
+    "schema-id" : 0
+  } ],
+  "statistics" : [ ],
+  "partition-statistics" : [ ],
+  "snapshot-log" : [ {
+    "timestamp-ms" : 1742998551912,
+    "snapshot-id" : 1563362177603208424
+  } ],
+  "metadata-log" : [ {
+    "timestamp-ms" : 1742998551912,
+    "metadata-file" : "spark-warehouse/iceberg/employee_db/employee/metadata/v1.metadata.json"
+  }, {
+    "timestamp-ms" : 1742999322781,
+    "metadata-file" : "spark-warehouse/iceberg/employee_db/employee/metadata/v2.metadata.json"
+  }, {
+    "timestamp-ms" : 1743943320934,
+    "metadata-file" : "spark-warehouse/iceberg/employee_db/employee/metadata/v3.metadata.json"
+  }, {
+    "timestamp-ms" : 1743943645925,
+    "metadata-file" : "spark-warehouse/iceberg/employee_db/employee/metadata/v4.metadata.json"
+  }, {
+    "timestamp-ms" : 1743943701527,
+    "metadata-file" : "spark-warehouse/iceberg/employee_db/employee/metadata/v5.metadata.json"
+  } ]
+}
