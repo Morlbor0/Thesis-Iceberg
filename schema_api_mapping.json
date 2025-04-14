@@ -1,0 +1,34 @@
+[
+  {
+    "schema_id": "1",
+    "api_version": "apiv1"
+  },
+  {
+    "schema_id": "8",
+    "api_version": "apiv8"
+  },
+  {
+    "schema_id": "9",
+    "api_version": "apiv9"
+  },
+  {
+    "schema_id": "10",
+    "api_version": "apiv10"
+  },
+  {
+    "schema_id": "11",
+    "api_version": "apiv11"
+  },
+  {
+    "schema_id": "12",
+    "api_version": "apiv12"
+  },
+  {
+    "schema_id": "13",
+    "api_version": "apiv13"
+  },
+  {
+    "schema_id": "14",
+    "api_version": "apiv14"
+  }
+]

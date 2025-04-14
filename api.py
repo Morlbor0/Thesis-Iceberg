@@ -5,6 +5,11 @@ import traceback
 import pandas as pd
 import os
 import json
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="xxx"
+)
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -19,6 +24,38 @@ spark = SparkSession.builder \
     .config("spark.sql.catalog.iceberg.type", "hadoop") \
     .config("spark.sql.catalog.iceberg.warehouse", "spark-warehouse/iceberg") \
     .getOrCreate()
+
+def load_json(path):
+    with open(path, "r") as f:
+        return json.load(f)
+
+def save_json(path, data):
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+
+def update_schema_mapping():
+    schema_mapping_path = '/Users/francescogalli/Desktop/Iceberg_Thesis_Work/schema_api_mapping.json'
+
+    schema_mapping = load_json(schema_mapping_path)
+
+    last_schema_path = f"spark-warehouse/iceberg/employee_db/employee/metadata/version-hint.text"
+    with open(last_schema_path, "r") as f:
+        last_schema = f.read()
+
+    # Update or add the table mapping
+    additional_schema = {
+        "schema_id": last_schema,
+        "api_version": f"apiv{last_schema}",  # Simple versioning scheme
+    }
+
+
+    schema_mapping.append(additional_schema)
+
+    # Save the updated mapping back to the JSON file
+    save_json(schema_mapping_path, schema_mapping)
+
+def clean_code(response_text):
+    return response_text.strip().removeprefix("```python").removesuffix("```").strip()
 
 class IcebergTable(Resource):
 
@@ -223,13 +260,182 @@ class GetEmployeeByName(Resource):
     # BUT THIS WILL ALWAYS RETRIEVE INFORMATION ABOUT THE COLUMN WHOSE INDEX IS 2, SO IF THE STRUCTURE OF THE TABLE COMPLETELY CHANGES, THIS WILL NOT WORK
     
     # IN SHORT, THIS WORKS WELL WITH 'RENAMES', BUT MAYBE NOT SO MUCH WHEN OTHER OPERATIONS TAKE PLACE
-        
 
-# Add API resource with dynamic table name
+def ai_rewrite_api(table_name, column, new_column):
+
+    prompt = f"""The name of the column '{column}' has just been changed to '{new_column}'.
+            Please rewrite the API code to reflect this change.
+            The structure you are to use is the following:
+            'class GetColumnName(Resource):
+                def get(self, table_name):
+                    try:
+                        query = spark.sql(f"SELECT `Column name` FROM iceberg.employee_db.{table_name}")
+                        data = query.toPandas().to_dict(orient="records")
+                        return jsonify(data)
+                    
+                    except Exception as e:
+                            print("Error occurred:", e)
+                            traceback.print_exc()
+                            return {{"error": str(e)}}, 500'. 
+            Please do not include any other information, just the code, and pay attention to indentation
+            since this code will be directly copied into another API file.
+            Do not include '''python at the beginning of the code, and do not include ''' at the end of the code,
+            since this will be actual code written in a .py file.
+    """
+
+    response = client.responses.create(
+        model="gpt-4o",
+        input=prompt
+    )
+    # Clean the response to remove any unwanted characters
+    response_text = clean_code(response.output_text)
+
+    return response_text
+
+def rewrite_api(old_column, new_column):
+    # Load original API code
+    with open(os.path.abspath(__file__), "r") as file:
+        api_code = file.read()
+
+    # Load current schema version
+    metadata_path = f"spark-warehouse/iceberg/employee_db/employee/metadata/version-hint.text"
+    with open(metadata_path, "r") as f:
+        last_schema = f.read().strip()
+
+    # Build OpenAI prompt
+    prompt = f"""
+    You are a helpful assistant with expertise in code editing and API design.
+
+    This is the current content of an API file (in Python, using Flask and Spark):
+
+    {api_code}
+
+
+    Now: the column name in the database has changed from '{old_column}' to '{new_column}'.
+
+    Your task:
+    - Keep the file structure and logic exactly the same.
+    - ONLY change the lines that would break due to the column name change.
+    - Update the SQL queries or any other references to the old column name so that the API continues to work.
+    - Do not rename endpoint routes or class/function names unless strictly necessary.
+
+    Return ONLY the full updated Python file content, without adding any markdown formatting, code fences, or extra characters.
+
+    ⚠️ IMPORTANT:
+    Return the updated Python code as raw plain text — no Markdown formatting, no backticks, no ```python or anything like that. 
+    The response must only contain the updated Python code and nothing else.
+    """
+
+    # Send prompt to OpenAI
+    client = OpenAI(api_key="xxxxx")
+
+    response = client.chat.completions.create(
+        model='gpt-4o',
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    updated_code = response.choices[0].message.content
+
+    clean_updated_code = clean_code(updated_code)
+
+    # Save updated API file
+    output_path = f"/Users/francescogalli/Desktop/Iceberg_Thesis_Work/apiv{last_schema}.py"
+    with open(output_path, "w") as out_file:
+        out_file.write(clean_updated_code)
+
+    print(f"✅ API updated and written to {output_path}")
+
+
+class ChangeColumnName(Resource):
+    def patch(self, table_name, column, new_column):
+        try:
+            query = spark.sql(f"ALTER TABLE iceberg.employee_db.{table_name} RENAME COLUMN `{column}` TO `{new_column}`")
+            data = query.toPandas().to_dict(orient="records")
+            update_schema_mapping()
+            rewrite_api(column, new_column)
+            return jsonify(data)
+        
+        except Exception as e:
+            print("Error occurred:", e)
+            traceback.print_exc()
+            return {"error": str(e)}, 500
+
+class GetPhoneColumn(Resource):
+    def get(self, table_name):
+        try:
+            query = spark.sql(f"SELECT `Phone number` FROM iceberg.employee_db.{table_name}")
+            data = query.toPandas().to_dict(orient="records")
+            return jsonify(data)
+        except Exception as e:
+            print("Error occurred:", e)
+            traceback.print_exc()
+            return {"error": str(e)}, 500
+        
+        # THIS WORKS ONLY IF THE COLUMN NAME IS 'Phone number' (STATIC)
+
+
+# Function to find the semantically closest column name using OpenAI API
+def find_closest_column(table_name, column):
+
+    current_schema_columns = set(spark.table(f"iceberg.employee_db.{table_name}").columns)
+
+    #prompt = f"The column '{column}' does not exist. Based on these columns {latest_columns}, which one is the closest match in meaning?"
+    prompt = f"The column '{column}' does not exist. Based on these columns: {', '.join(current_schema_columns)}, \
+                is there a column that is very close in meaning? \
+                If there is, please return the name of the column and nothing else. \
+                If there is no such column, please return 'NO MATCH'. \
+                If there are multiple columns that are close in meaning, please return 'AMBIGUOUS'."
+
+    response = client.responses.create(
+        model="gpt-4o",
+        input=prompt
+    )
+
+    return response.output_text
+
+class GetColumnAI(Resource):
+    def get(self, table_name, column):
+        try:
+            current_schema_columns = set(spark.table(f"iceberg.employee_db.{table_name}").columns)
+
+            if column in current_schema_columns:
+                query = spark.sql(f"SELECT `{column}` FROM iceberg.employee_db.{table_name}")
+                data = query.toPandas().to_dict(orient="records")
+                return jsonify(data)
+            else:
+                result = find_closest_column(table_name, column)
+
+                if result == "NO MATCH":
+                    return {"error": f"Column '{column}' does not exist in the table and never has"}, 404
+                elif result == "AMBIGUOUS":
+                    return {"error": f"Column '{column}' is ambiguous, please specify which one you mean"}, 400
+                else:
+                    query = spark.sql(f"SELECT `{result}` FROM iceberg.employee_db.{table_name}")
+                    data = query.toPandas().to_dict(orient="records")
+                    return jsonify(data)
+
+
+        except Exception as e:
+            print("Error occurred:", e)
+            traceback.print_exc()
+            return {"error": str(e)}, 500
+        
+    # Using this method, we will return the semantically closest column name even if the column name was changed 
+
+# API RESOURCES
 api.add_resource(GetColumn, "/<string:table_name>/<string:column>")
 api.add_resource(GetEmployeeById, "/<string:table_name>/<int:id>")
 api.add_resource(GetEmployeeByName, "/<string:table_name>/FirstName")
+api.add_resource(GetPhoneColumn, "/<string:table_name>/Phone%20number")
 
+api.add_resource(GetColumnAI, "/<string:table_name>/ai/<string:column>")
+
+api.add_resource(ChangeColumnName, "/<string:table_name>/rename_column/<string:column>/<string:new_column>")
+
+
+# API RESOURCES FOR TESTING
 api.add_resource(IcebergTable, "/<string:table_name>")
 api.add_resource(IcebergTableHistory, "/table_history/<string:table_name>")
 api.add_resource(IcebergTableAge, "/table_age/<string:table_name>")
