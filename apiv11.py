@@ -8,7 +8,7 @@ import json
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="xxxxx"
+    api_key="xxxx"
 )
 
 # Initialize Flask App

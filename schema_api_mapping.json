@@ -30,5 +30,9 @@
   {
     "schema_id": "14",
     "api_version": "apiv14"
+  },
+  {
+    "schema_id": "15",
+    "api_version": "apiv15"
   }
 ]

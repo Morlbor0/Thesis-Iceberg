@@ -8,7 +8,7 @@ import json
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="xxxxx"
+    api_key="xxxx"
 )
 
 # Initialize Flask App
@@ -48,11 +48,13 @@ def update_schema_mapping():
         "api_version": f"apiv{last_schema}",  # Simple versioning scheme
     }
 
-
     schema_mapping.append(additional_schema)
 
     # Save the updated mapping back to the JSON file
     save_json(schema_mapping_path, schema_mapping)
+
+def clean_code(response_text):
+    return response_text.strip().removeprefix("```python").removesuffix("```").strip()
 
 class IcebergTable(Resource):
 
@@ -284,7 +286,10 @@ def ai_rewrite_api(table_name, column, new_column):
         model="gpt-4o",
         input=prompt
     )
-    return response.output_text
+    # Clean the response to remove any unwanted characters
+    response_text = clean_code(response.output_text)
+
+    return response_text
 
 def rewrite_api(old_column, new_column):
     # Load original API code
@@ -315,11 +320,13 @@ def rewrite_api(old_column, new_column):
 
     Return ONLY the full updated Python file content, without adding any markdown formatting, code fences, or extra characters.
 
-    Importantly, do NOT include "```python" at the beginning or "```" at the end — only return the pure Python code so it can be written directly to a .py file.
+    ⚠️ IMPORTANT:
+    Return the updated Python code as raw plain text — no Markdown formatting, no backticks, no ```python or anything like that. 
+    The response must only contain the updated Python code and nothing else.
     """
 
     # Send prompt to OpenAI
-    client = OpenAI(api_key="xxxxx")
+    client = OpenAI(api_key="xxxx")
 
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -330,13 +337,14 @@ def rewrite_api(old_column, new_column):
 
     updated_code = response.choices[0].message.content
 
+    clean_updated_code = clean_code(updated_code)
+
     # Save updated API file
     output_path = f"/Users/francescogalli/Desktop/Iceberg_Thesis_Work/apiv{last_schema}.py"
     with open(output_path, "w") as out_file:
-        out_file.write(updated_code)
+        out_file.write(clean_updated_code)
 
     print(f"✅ API updated and written to {output_path}")
-
 
 class ChangeColumnName(Resource):
     def patch(self, table_name, column, new_column):
@@ -355,7 +363,7 @@ class ChangeColumnName(Resource):
 class GetPhoneColumn(Resource):
     def get(self, table_name):
         try:
-            query = spark.sql(f"SELECT `Phone number` FROM iceberg.employee_db.{table_name}")
+            query = spark.sql(f"SELECT `Phone` FROM iceberg.employee_db.{table_name}")
             data = query.toPandas().to_dict(orient="records")
             return jsonify(data)
         except Exception as e:
@@ -363,7 +371,7 @@ class GetPhoneColumn(Resource):
             traceback.print_exc()
             return {"error": str(e)}, 500
         
-        # THIS WORKS ONLY IF THE COLUMN NAME IS 'Phone number' (STATIC)
+        # THIS WORKS ONLY IF THE COLUMN NAME IS 'Phone' (STATIC)
 
 
 # Function to find the semantically closest column name using OpenAI API
